@@ -1,7 +1,6 @@
-# Express Example
+# CR App Server
 
-This repository demonstrates the usage of Sequelize within an [Express](https://expressjs.com) application.
-The implemented logic is a simple task tracking tool.
+A Node.js and Sequelize server for the app of CR App - A seamless and flawless intermediary between students and teachers.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
