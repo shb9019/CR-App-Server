@@ -1,7 +1,8 @@
 {
-  "name": "express-example",
-  "version": "0.0.0",
-  "private": true,
+  "name": "cr-app",
+  "description": "An application to serve as a class representative between students and teachers",
+  "version": "0.0.1",
+  "private": false,
   "scripts": {
     "start": "cross-env DEBUG=express-sequelize node ./bin/www",
     "test": "npm run test-unit && npm run test-integration",
