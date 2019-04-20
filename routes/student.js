@@ -2,6 +2,17 @@ const models = require('../models');
 const express = require('express');
 const router = express.Router();
 
+const authorizeStudent = async (rollno, password) => {
+  const matchingStudents = await models.Student.findOne({
+    where: {
+      rollno,
+      password,
+    },
+  });
+
+  return matchingStudents;
+};
+
 router.post('/login', async (req, res) => {
   const { rollno, password } = req.body;
   if (!rollno || rollno === '') {
@@ -16,47 +27,37 @@ router.post('/login', async (req, res) => {
     });
   }
 
-  const matchingUsers = await models.Student.findAll({
-    where: {
-      rollno,
-      password,
-    },
-  });
+  const student = await authorizeStudent(rollno, password);
 
-  if (matchingUsers.length === 0) {
-    return res.status(400).json({
+  if (student) {
+    return res.status(200).json({
+      type: 'Success',
+      message: 'Login successful',
+      details: student,
+    });
+  } else {
+    return res.status(401).json({
       type: 'Error',
-      error: 'Invalid Roll No',
+      message: 'Invalid Credentials',
     });
   }
-
-  const user = matchingUsers[0];
-
-  req.session.isLoggedIn = true;
-  req.session.rollno = rollno;
-  req.session.semester = user.semester;
-  req.session.classid = user.classid;
-  req.session.studentid = user.id;
-  req.session.isStudent = true;
-  req.session.isTeacher = false;
-
-  return res.status(200).json({
-    type: 'Success',
-    error: 'Login successful',
-  });
 });
 
 router.post('/courses', async (req, res) => {
-  if (!req.session.isLoggedIn) {
-    return res.status(400).json({
+  const { rollno, password } = req.body;
+
+  const student = await authorizeStudent(rollno, password);
+
+  if (!student) {
+    return res.status(401).json({
       type: 'Error',
-      error: 'User not logged in',
+      message: 'Invalid Credentials',
     });
   }
 
   const studentCourses = await models.StudentCourse.findAll({
     where: {
-      studentid: req.session.studentid,
+      studentid: student.id,
     },
   });
 
@@ -82,16 +83,20 @@ router.post('/courses', async (req, res) => {
 });
 
 router.post('/schedule', async (req, res) => {
-  if (!req.session.isLoggedIn) {
-    return res.status(400).json({
+  const { rollno, password } = req.body;
+
+  const student = await authorizeStudent(rollno, password);
+
+  if (!student) {
+    return res.status(401).json({
       type: 'Error',
-      error: 'User not logged in',
+      message: 'Invalid Credentials',
     });
   }
 
   const studentCourses = await models.StudentCourse.findAll({
     where: {
-      studentid: req.session.studentid,
+      studentid: student.studentid,
     },
   });
 

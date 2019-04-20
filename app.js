@@ -20,7 +20,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(
   session({
     secret: 'fuck_ma_bitchez',
-    resave: false,
+    resave: true,
     saveUninitialized: true,
   }),
 );
