@@ -217,7 +217,7 @@ router.post('/add', async (req, res) => {
     });
   }
 
-  const mClass = models.Class.findOne({
+  const mClass = await models.Class.findOne({
     where: {
       classname,
     },
@@ -232,7 +232,7 @@ router.post('/add', async (req, res) => {
 
   const classid = mClass.id;
 
-  const course = models.Course.findOne({
+  const course = await models.Course.findOne({
     where: {
       coursename,
     },
