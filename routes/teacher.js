@@ -3,12 +3,13 @@ const express = require('express');
 const router = express.Router();
 
 const parseslot = (slot) => {
-  let startTime, endTime;
+  let startTime = new Date();
+  let endTime = new Date();
 
   switch(slot) {
     case 1: {
-      startTime = new Date('8:30am');
-      endTime = new Date('9:20am');
+      startTime.setHours(8, 30, 0);
+      endTime.setHours(9, 20, 0);
       break;
     }
     case 2: {
