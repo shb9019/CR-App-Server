@@ -2,6 +2,17 @@ const models = require('../models');
 const express = require('express');
 const router = express.Router();
 
+const authorizeTeacher = async (email, password) => {
+  const matchingTeacher = await models.Teacher.findOne({
+    where: {
+      email,
+      password,
+    },
+  });
+
+  return matchingTeacher;
+};
+
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || email === '') {
@@ -16,28 +27,14 @@ router.post('/login', async (req, res) => {
     });
   }
 
-  const matchingTeachers = await models.Teacher.findAll({
-    where: {
-      email,
-      password,
-    },
-  });
+  const teacher = await authorizeTeacher(email, password);
 
-  if (matchingTeachers.length === 0) {
-    return res.status(400).json({
+  if (!teacher) {
+    return res.status(401).json({
       type: 'Error',
-      error: 'Invalid Email and Password',
+      error: 'Invalid Credentials',
     });
   }
-
-  const user = matchingTeachers[0];
-
-  req.session.isLoggedIn = true;
-  req.session.email = email;
-  req.session.teacherName = user.name;
-  req.session.teacherid = user.id;
-  req.session.isStudent = false;
-  req.session.isTeacher = true;
 
   return res.status(200).json({
     type: 'Success',
@@ -45,53 +42,14 @@ router.post('/login', async (req, res) => {
   });
 });
 
-router.get('/schedule', async (req, res) => {
-  if (!req.session.isLoggedIn || !req.session.isTeacher) {
-    return res.status(400).json({
-      type: 'Error',
-      error: 'User not logged in',
-    });
-  }
-
-  const teacherClasses = await models.Schedule.findAll({
-    where: {
-      teacherid: req.session.teacherid,
-    },
-  });
-
-  const classes = [];
-  for (const teacherClass of teacherClasses) {
-    const courseDetails = await models.Course.findOne({
-      where: {
-        id: teacherClass.courseid,
-      },
-    });
-
-    const classDetails = await models.Class.findOne({
-      where: {
-        id: teacherClass.classid,
-      },
-    });
-
-    classes.push({
-      classname: classDetails.classname,
-      coursename: courseDetails.coursename,
-      starttime: teacherClass.starttime,
-      endtime: teacherClass.endtime,
-    });
-  }
-
-  return res.status(200).json({
-    type: 'Success',
-    classes,
-  });
-});
-
 router.get('/classes', async (req, res) => {
-  if (!req.session.isLoggedIn || !req.session.isTeacher) {
-    return res.status(400).json({
+  const { email, password } = req.body;
+  const teacher = await authorizeTeacher(email, password);
+
+  if (!teacher) {
+    return res.status(401).json({
       type: 'Error',
-      error: 'User not logged in',
+      error: 'Invalid Credentials',
     });
   }
 
@@ -111,11 +69,64 @@ router.get('/classes', async (req, res) => {
   });
 });
 
-router.get('/courses', async (req, res) => {
-  if (!req.session.isLoggedIn || !req.session.isTeacher) {
-    return res.status(400).json({
+router.get('/schedule', async (req, res) => {
+  const {
+    email,
+    password,
+    classid
+  } = req.body;
+  const teacher = await authorizeTeacher(email, password);
+
+  if (!teacher) {
+    return res.status(401).json({
       type: 'Error',
-      error: 'User not logged in',
+      error: 'Invalid Credentials',
+    });
+  }
+
+  const classes = [];
+  const studentClasses = await models.Schedule.findAll({
+    where: {
+      classid: req.session.classid,
+    }
+  });
+
+  for (const studentClass of studentClasses) {
+    const courseDetails = await models.Course.findOne({
+      where: {
+        id: studentClass.courseid,
+      },
+    });
+
+    const teacherDetails = await models.Teacher.findOne({
+      where: {
+        id: studentClass.teacherid,
+      },
+    });
+
+    classes.push({
+      coursename: courseDetails.coursename,
+      teacherid: studentClass.teacherid,
+      teachername: teacherDetails.name,
+      starttime: studentClass.starttime,
+      endtime: studentClass.endtime,
+    });
+  }
+
+  return res.status(200).json({
+    type: 'Success',
+    classes: classes,
+  });
+});
+
+router.get('/courses', async (req, res) => {
+  const { email, password } = req.body;
+  const teacher = await authorizeTeacher(email, password);
+
+  if (!teacher) {
+    return res.status(401).json({
+      type: 'Error',
+      error: 'Invalid Credentials',
     });
   }
 
