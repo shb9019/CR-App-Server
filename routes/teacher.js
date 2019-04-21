@@ -13,38 +13,38 @@ const parseslot = (slot) => {
       break;
     }
     case 2: {
-      startTime = new Date('9:20am');
-      endTime = new Date('10:10am');
+      startTime.setHours(9, 20, 0);
+      endTime.setHours(10, 10, 0);
       break;
     }
     case 3: {
-      startTime = new Date('10:30am');
-      endTime = new Date('11:20am');
+      startTime.setHours(10, 30, 0);
+      endTime.setHours(11, 20, 0);
       break;
     }
     case 4: {
-      startTime = new Date('11:20am');
-      endTime = new Date('12:10pm');
+      startTime.setHours(11, 20, 0);
+      endTime.setHours(12, 10, 0);
       break;
     }
     case 5: {
-      startTime = new Date('1:30pm');
-      endTime = new Date('2:20pm');
+      startTime.setHours(13, 30, 0);
+      endTime.setHours(14, 20, 0);
       break;
     }
     case 6: {
-      startTime = new Date('2:20pm');
-      endTime = new Date('3:10pm');
+      startTime.setHours(14, 20, 0);
+      endTime.setHours(15, 10, 0);
       break;
     }
     case 7: {
-      startTime = new Date('3:30pm');
-      endTime = new Date('4:20pm');
+      startTime.setHours(15, 30, 0);
+      endTime.setHours(16, 20, 0);
       break;
     }
     case 8: {
-      startTime = new Date('4:20pm');
-      endTime = new Date('5:10pm');
+      startTime.setHours(16, 20, 0);
+      endTime.setHours(17, 10, 0);
       break;
     }
   }
@@ -154,16 +154,9 @@ router.post('/schedule', async (req, res) => {
       },
     });
 
-    const teacherCourseDetails = await models.TeacherCourse.findOne({
-      where: {
-        courseid: studentClass.courseid,
-        classid: studentClass.classid,
-      }
-    }); 
-
     const teacherDetails = await models.Teacher.findOne({
       where: {
-        id: teacherCourseDetails.teacherid,
+        id: studentClass.teacherid,
       },
     });
 
@@ -212,9 +205,7 @@ router.post('/courses', async (req, res) => {
 
 router.post('/add', async (req, res) => {
   const { email, password, classname, coursename } = req.body;
-  let { startTime, endTime } = parseslot(req.body.slot);
-
-  console.log(startTime, endTime);
+  let { starttime, endtime } = parseslot(Integer(req.body.slot));
 
   const teacher = await authorizeTeacher(email, password);
 
@@ -225,19 +216,37 @@ router.post('/add', async (req, res) => {
     });
   }
 
-  if (!classid) {
+  const mClass = model.Class.findOne({
+    where: {
+      classname,
+    },
+  });
+
+  if (!mClass) {
     return res.status(400).json({
       type: 'Error',
       error: 'Class not found',
     });
   }
 
-  if (!courseid) {
+  const classid = mClass.id;
+
+  const course = model.Course.findOne({
+    where: {
+      coursename,
+    },
+  });
+
+  if (!course) {
     return res.status(400).json({
       type: 'Error',
       error: 'Course not found',
     });
   }
+
+  const courseid = course.id;
+
+  console.log(teacher.id, courseid, classid, starttime, endtime);
 
   if (!starttime || !endtime || starttime >= endtime) {
     return res.status(400).json({
@@ -286,7 +295,7 @@ router.post('/add', async (req, res) => {
   }
 
   await models.Schedule.create({
-    teacherid: req.session.teacherid,
+    teacherid: teacher.teacherid,
     classid,
     courseid,
     starttime,
