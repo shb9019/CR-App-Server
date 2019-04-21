@@ -111,7 +111,7 @@ router.post('/schedule', async (req, res) => {
     });
 
     classes.push({
-      scheduleid: studentClass.id,
+      scheduleid: String(studentClass.id),
       coursename: courseDetails.coursename,
       teacherid: studentClass.teacherid,
       teachername: teacherDetails.name,
@@ -242,6 +242,8 @@ router.get('/add', async (req, res) => {
 
 router.post('/cancel', async (req, res) => {
   const { email, password, scheduleid } = req.body;
+  scheduleid = Number(scheduleid);
+  console.log(scheduleid);
   const teacher = await authorizeTeacher(email, password);
 
   if (!teacher) {
