@@ -3,53 +3,53 @@ const express = require('express');
 const router = express.Router();
 
 const parseslot = (slot) => {
-  let startTime = new Date();
-  let endTime = new Date();
+  let starttime = new Date();
+  let endtime = new Date();
 
   switch(slot) {
     case 1: {
-      startTime.setHours(8, 30, 0);
-      endTime.setHours(9, 20, 0);
+      starttime.setHours(8, 30, 0);
+      endtime.setHours(9, 20, 0);
       break;
     }
     case 2: {
-      startTime.setHours(9, 20, 0);
-      endTime.setHours(10, 10, 0);
+      starttime.setHours(9, 20, 0);
+      endtime.setHours(10, 10, 0);
       break;
     }
     case 3: {
-      startTime.setHours(10, 30, 0);
-      endTime.setHours(11, 20, 0);
+      starttime.setHours(10, 30, 0);
+      endtime.setHours(11, 20, 0);
       break;
     }
     case 4: {
-      startTime.setHours(11, 20, 0);
-      endTime.setHours(12, 10, 0);
+      starttime.setHours(11, 20, 0);
+      endtime.setHours(12, 10, 0);
       break;
     }
     case 5: {
-      startTime.setHours(13, 30, 0);
-      endTime.setHours(14, 20, 0);
+      starttime.setHours(13, 30, 0);
+      endtime.setHours(14, 20, 0);
       break;
     }
     case 6: {
-      startTime.setHours(14, 20, 0);
-      endTime.setHours(15, 10, 0);
+      starttime.setHours(14, 20, 0);
+      endtime.setHours(15, 10, 0);
       break;
     }
     case 7: {
-      startTime.setHours(15, 30, 0);
-      endTime.setHours(16, 20, 0);
+      starttime.setHours(15, 30, 0);
+      endtime.setHours(16, 20, 0);
       break;
     }
     case 8: {
-      startTime.setHours(16, 20, 0);
-      endTime.setHours(17, 10, 0);
+      starttime.setHours(16, 20, 0);
+      endtime.setHours(17, 10, 0);
       break;
     }
   }
 
-  return { startTime, endTime };
+  return { starttime, endtime };
 }
 
 const authorizeTeacher = async (email, password) => {
@@ -205,7 +205,8 @@ router.post('/courses', async (req, res) => {
 
 router.post('/add', async (req, res) => {
   const { email, password, classname, coursename } = req.body;
-  let { starttime, endtime } = parseslot(Integer(req.body.slot));
+  console.log(Number(req.body.slot));
+  let { starttime, endtime } = parseslot(Number(req.body.slot));
 
   const teacher = await authorizeTeacher(email, password);
 
@@ -216,7 +217,7 @@ router.post('/add', async (req, res) => {
     });
   }
 
-  const mClass = model.Class.findOne({
+  const mClass = models.Class.findOne({
     where: {
       classname,
     },
@@ -231,7 +232,7 @@ router.post('/add', async (req, res) => {
 
   const classid = mClass.id;
 
-  const course = model.Course.findOne({
+  const course = models.Course.findOne({
     where: {
       coursename,
     },
