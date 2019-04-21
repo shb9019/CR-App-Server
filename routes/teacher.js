@@ -104,9 +104,16 @@ router.post('/schedule', async (req, res) => {
       },
     });
 
+    const teacherCourseDetails = await models.TeacherCourse.findOne({
+      where: {
+        courseid: studentClass.courseid,
+        classid: studentClass.classid,
+      }
+    }); 
+
     const teacherDetails = await models.Teacher.findOne({
       where: {
-        id: studentClass.teacherid,
+        id: teacherCourseDetails.teacherid,
       },
     });
 
@@ -241,9 +248,9 @@ router.get('/add', async (req, res) => {
 });
 
 router.post('/cancel', async (req, res) => {
-  const { email, password, scheduleid } = req.body;
-  scheduleid = Number(scheduleid);
-  console.log(scheduleid);
+  const { email, password } = req.body;
+  let scheduleid = Number(req.body.scheduleid);
+
   const teacher = await authorizeTeacher(email, password);
 
   if (!teacher) {
@@ -267,7 +274,9 @@ router.post('/cancel', async (req, res) => {
   }
 
   await models.Schedule.destroy({
-    id: req.body.scheduleid,
+    where: {
+      id: req.body.scheduleid,
+    }
   });
 
   return res.status(200).json({
