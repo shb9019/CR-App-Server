@@ -42,7 +42,7 @@ router.post('/login', async (req, res) => {
   });
 });
 
-router.get('/classes', async (req, res) => {
+router.post('/classes', async (req, res) => {
   const { email, password } = req.body;
   const teacher = await authorizeTeacher(email, password);
 
@@ -56,7 +56,7 @@ router.get('/classes', async (req, res) => {
   const classes = await models.Class.findAll({});
 
   const result = [];
-  for (const resultClass in classes) {
+  for (const resultClass of classes) {
     result.push({
       id: resultClass.id,
       classname: resultClass.classname,
@@ -69,11 +69,11 @@ router.get('/classes', async (req, res) => {
   });
 });
 
-router.get('/schedule', async (req, res) => {
+router.post('/schedule', async (req, res) => {
   const {
     email,
     password,
-    classid
+    classname
   } = req.body;
   const teacher = await authorizeTeacher(email, password);
 
@@ -85,9 +85,15 @@ router.get('/schedule', async (req, res) => {
   }
 
   const classes = [];
+  const classDetails = await models.Class.findOne({
+    where: {
+      classname,
+    }
+  });
+
   const studentClasses = await models.Schedule.findAll({
     where: {
-      classid: req.session.classid,
+      classid: classDetails.id,
     }
   });
 
@@ -105,6 +111,7 @@ router.get('/schedule', async (req, res) => {
     });
 
     classes.push({
+      scheduleid: studentClass.id,
       coursename: courseDetails.coursename,
       teacherid: studentClass.teacherid,
       teachername: teacherDetails.name,
@@ -119,7 +126,7 @@ router.get('/schedule', async (req, res) => {
   });
 });
 
-router.get('/courses', async (req, res) => {
+router.post('/courses', async (req, res) => {
   const { email, password } = req.body;
   const teacher = await authorizeTeacher(email, password);
 
@@ -233,17 +240,20 @@ router.get('/add', async (req, res) => {
   });
 });
 
-router.get('/cancel', async (req, res) => {
-  if (!req.session.isLoggedIn || !req.session.isTeacher) {
-    return res.status(400).json({
+router.post('/cancel', async (req, res) => {
+  const { email, password, scheduleid } = req.body;
+  const teacher = await authorizeTeacher(email, password);
+
+  if (!teacher) {
+    return res.status(401).json({
       type: 'Error',
-      error: 'User not logged in',
+      error: 'Invalid Credentials',
     });
   }
 
   const scheduleElement = await models.Schedule.findOne({
     where: {
-      id: req.body.scheduleid
+      id: scheduleid
     }
   });
 
@@ -251,13 +261,6 @@ router.get('/cancel', async (req, res) => {
     return res.status(200).json({
       type: 'Success',
       message: 'Schedule Element does not exist',
-    });
-  }
-
-  if (scheduleElement.teacherid !== req.session.teacherid) {
-    return res.status(200).json({
-      type: 'Success',
-      message: 'Schedule Element does not belong to you',
     });
   }
 
