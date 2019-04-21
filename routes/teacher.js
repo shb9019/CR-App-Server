@@ -147,7 +147,7 @@ router.post('/courses', async (req, res) => {
   const courses = await models.Course.findAll({});
 
   const result = [];
-  for (const resultCourse in courses) {
+  for (const resultCourse of courses) {
     result.push({
       id: resultCourse.id,
       coursename: resultCourse.coursename,
