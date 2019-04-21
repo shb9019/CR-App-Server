@@ -258,7 +258,7 @@ router.post('/add', async (req, res) => {
 
   const teacherClasses = await models.Schedule.findAll({
     where: {
-      teacherid: req.session.teacherid,
+      teacherid: teacher.id,
     },
   });
 
