@@ -2,6 +2,55 @@ const models = require('../models');
 const express = require('express');
 const router = express.Router();
 
+const parseslot = (slot) => {
+  let startTime, endTime;
+
+  switch(slot) {
+    case 1: {
+      startTime = new Date('8:30am');
+      endTime = new Date('9:20am');
+      break;
+    }
+    case 2: {
+      startTime = new Date('9:20am');
+      endTime = new Date('10:10am');
+      break;
+    }
+    case 3: {
+      startTime = new Date('10:30am');
+      endTime = new Date('11:20am');
+      break;
+    }
+    case 4: {
+      startTime = new Date('11:20am');
+      endTime = new Date('12:10pm');
+      break;
+    }
+    case 5: {
+      startTime = new Date('1:30pm');
+      endTime = new Date('2:20pm');
+      break;
+    }
+    case 6: {
+      startTime = new Date('2:20pm');
+      endTime = new Date('3:10pm');
+      break;
+    }
+    case 7: {
+      startTime = new Date('3:30pm');
+      endTime = new Date('4:20pm');
+      break;
+    }
+    case 8: {
+      startTime = new Date('4:20pm');
+      endTime = new Date('5:10pm');
+      break;
+    }
+  }
+
+  return { startTime, endTime };
+}
+
 const authorizeTeacher = async (email, password) => {
   const matchingTeacher = await models.Teacher.findOne({
     where: {
@@ -160,18 +209,20 @@ router.post('/courses', async (req, res) => {
   });
 });
 
-router.get('/add', async (req, res) => {
-  if (!req.session.isLoggedIn || !req.session.isTeacher) {
-    return res.status(400).json({
+router.post('/add', async (req, res) => {
+  const { email, password, classname, coursename } = req.body;
+  let { startTime, endTime } = parseslot(req.body.slot);
+
+  console.log(startTime, endTime);
+
+  const teacher = await authorizeTeacher(email, password);
+
+  if (!teacher) {
+    return res.status(401).json({
       type: 'Error',
-      error: 'User not logged in',
+      error: 'Invalid Credentials',
     });
   }
-
-  const { classid, courseid, starttime, endtime } = req.body;
-
-  starttime = new Date(starttime);
-  endtime = new Date(endtime);
 
   if (!classid) {
     return res.status(400).json({
