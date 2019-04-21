@@ -30,6 +30,7 @@ router.post('/login', async (req, res) => {
   const student = await authorizeStudent(rollno, password);
 
   if (student) {
+    console.log(student);
     return res.status(200).json({
       type: 'Success',
       message: 'Login successful',
@@ -86,6 +87,7 @@ router.post('/schedule', async (req, res) => {
   const { rollno, password } = req.body;
 
   const student = await authorizeStudent(rollno, password);
+  console.log(student.id);
 
   if (!student) {
     return res.status(401).json({
@@ -96,7 +98,7 @@ router.post('/schedule', async (req, res) => {
 
   const studentCourses = await models.StudentCourse.findAll({
     where: {
-      studentid: student.studentid,
+      studentid: student.id,
     },
   });
 
@@ -104,13 +106,13 @@ router.post('/schedule', async (req, res) => {
   for (const studentCourse of studentCourses) {
     const studentClasses = await models.Schedule.findAll({
       where: {
-        classid: req.session.classid,
+        classid: student.classid,
         courseid: studentCourse.courseid,
       }
     });
-    console.log(studentClasses);
+    //console.log(studentClasses);
     for (const studentClass of studentClasses) {
-      console.log(studentClass.courseid);
+      //console.log(studentClass.courseid);
       const courseDetails = await models.Course.findOne({
         where: {
           id: studentClass.courseid,
@@ -122,6 +124,7 @@ router.post('/schedule', async (req, res) => {
         starttime: studentClass.starttime,
         endtime: studentClass.endtime,
       });
+      console.log(classes);
     }
   }
 
