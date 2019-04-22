@@ -1,6 +1,13 @@
 const models = require('../models');
 const express = require('express');
 const router = express.Router();
+const admin = require('firebase-admin');
+const serviceAccount = require("../config/cr-app-2-firebase-adminsdk-9u0xh-96641d2659.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://cr-app-2.firebaseio.com"
+});
 
 const parseslot = (slot) => {
   let starttime = new Date();
@@ -116,6 +123,57 @@ router.post('/classes', async (req, res) => {
   return res.status(200).json({
     type: 'Success',
     classes: result,
+  });
+});
+
+router.post('/schedule2', async (req, res) => {
+  const {
+    email,
+    password,
+  } = req.body;
+  const teacher = await authorizeTeacher(email, password);
+
+  if (!teacher) {
+    return res.status(401).json({
+      type: 'Error',
+      error: 'Invalid Credentials',
+    });
+  }
+
+  const classes = [];
+
+  const studentClasses = await models.Schedule.findAll({
+    where: {
+      teacherid: teacher.id,
+    }
+  });
+
+  for (const studentClass of studentClasses) {
+    const courseDetails = await models.Course.findOne({
+      where: {
+        id: studentClass.courseid,
+      },
+    });
+
+    const teacherDetails = await models.Teacher.findOne({
+      where: {
+        id: studentClass.teacherid,
+      },
+    });
+
+    classes.push({
+      scheduleid: String(studentClass.id),
+      coursename: courseDetails.coursename,
+      teacherid: studentClass.teacherid,
+      teachername: teacherDetails.name,
+      starttime: studentClass.starttime,
+      endtime: studentClass.endtime,
+    });
+  }
+
+  return res.status(200).json({
+    type: 'Success',
+    classes: classes,
   });
 });
 
