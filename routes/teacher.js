@@ -155,17 +155,18 @@ router.post('/schedule2', async (req, res) => {
       },
     });
 
-    const teacherDetails = await models.Teacher.findOne({
+    const classDetails = await models.Class.findOne({
       where: {
-        id: studentClass.teacherid,
-      },
+        id: studentClass.classid,
+      }
     });
 
     classes.push({
       scheduleid: String(studentClass.id),
       coursename: courseDetails.coursename,
-      teacherid: studentClass.teacherid,
-      teachername: teacherDetails.name,
+      classname: classDetails.classname,
+      teacherid: teacher.id,
+      teachername: teacher.name,
       starttime: studentClass.starttime,
       endtime: studentClass.endtime,
     });
